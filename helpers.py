@@ -69,7 +69,7 @@ def train_test_dataframe(clean_df, random_seed=100):
 # helper function for pre-processing text given a file
 def process_file(file):
     # put text in all lower case letters 
-    all_text = file.read().lower()
+    all_text = file.read()#.lower()
 
     # remove all non-alphanumeric chars
     all_text = re.sub(r"[^a-zA-Z0-9]", " ", all_text)
