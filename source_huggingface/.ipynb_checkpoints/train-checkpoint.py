@@ -126,36 +126,99 @@ def train(model, train_loader, epochs, criterion, optimizer, device):
         print("Epoch: {}, Loss: {}".format(epoch, total_loss / len(train_loader)))
 
 
-## TODO: Complete the main code
 if __name__ == '__main__':
-    
+        
     # All of the model parameters and training parameters are sent as arguments
     # when this script is executed, during a training job
+    logger.info(sys.argv)
     
     # Here we set up an argument parser to easily access the parameters
     parser = argparse.ArgumentParser()
 
     # SageMaker parameters, like the directories for training data and saving models; set automatically
     # Do not need to change
+    # hyperparameters sent by the client are passed as command-line arguments to the script.
+    parser.add_argument("--epochs", type=int, default=3)
+    parser.add_argument("--train-batch-size", type=int, default=32)
+    parser.add_argument("--eval-batch-size", type=int, default=64)
+    parser.add_argument("--warmup_steps", type=int, default=500)
+    parser.add_argument("--model_name", type=str)
+    parser.add_argument("--learning_rate", type=str, default=5e-5)
+    parser.add_argument("--output_dir", type=str)
+    
+    # Data, model, and output directories
+    parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
+    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
+    parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
+    parser.add_argument("--training_dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
+    parser.add_argument("--test_dir", type=str, default=os.environ["SM_CHANNEL_TEST"])
+    
     parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     
-    # Training Parameters, given
-    parser.add_argument('--batch-size', type=int, default=10, metavar='N',
-                        help='input batch size for training (default: 10)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 10)')
-    parser.add_argument('--seed', type=int, default=1, metavar='S',
-                        help='random seed (default: 1)')
-    
-    ## TODO: Add args for the three model parameters: input_features, hidden_dim, output_dim
-    # Model Parameters
-    
-    
     # args holds all passed-in arguments
-    args = parser.parse_args()
-
+    args, _ = parser.parse_known_args()
+    
+    # load datasets
+    train_dataset = load_from_disk(args.training_dir)
+    test_dataset = load_from_disk(args.test_dir)
+    
+    logger.info(f' loaded train_dataset length is: {len(train_dataset)}')
+    logger.info(f' loaded test_dataset length is: {len(test_dataset)}') 
+    
+    
+    
+    
+    
+    
+    # load dataset csvs to torch datasets
+    # The function load_data_from_folder expects a path to a folder that contains 
+    # train.csv, test.csv, and/or val.csv containing the respective split datasets. 
+    train_dataset, test_dataset = load_data_from_folder(
+        data_args.data_path,
+        data_args.column_info['text_cols'],
+        tokenizer,
+        label_col=data_args.column_info['label_col'],
+        label_list=data_args.column_info['label_list'],
+        categorical_cols=data_args.column_info['cat_cols'],
+        numerical_cols=data_args.column_info['num_cols'],
+        sep_text_token_str=tokenizer.sep_token
+    )
+    
+    # number of labels in dataset
+    num_labels = len(np.unique(train_dataset.labels))
+    
+    # compute metrics function for binary classification
+    def compute_metrics(pred):
+        labels = pred.label_ids
+        preds = pred.predictions.argmax(-1)
+        precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary')
+        acc = accuracy_score(labels, preds)
+        return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
+    
+    # create config for multimodal model
+    config = AutoConfig.from_pretrained(
+        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        cache_dir=model_args.cache_dir
+    )
+    
+    tabular_config = TabularConfig(num_labels=num_labels,
+                                  cat_feat_dim=train_dataset.cat_feats.shape[1],
+                                  numerical_feat_dim=train_dataset.numerical_feats.shape[1]
+                                  )
+    
+    config.tabular_config = tabular_config
+    
+    # download model
+    model = AutoModelWithTabular.from_pretrained(
+        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        config=config,
+        cache_dir=model_args.cache_dir
+    )
+    
+    
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device {}.".format(device))
 
