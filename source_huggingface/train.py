@@ -165,12 +165,7 @@ if __name__ == '__main__':
     test_dataset = load_from_disk(args.test_dir)
     
     logger.info(f' loaded train_dataset length is: {len(train_dataset)}')
-    logger.info(f' loaded test_dataset length is: {len(test_dataset)}') 
-    
-    
-    
-    
-    
+    logger.info(f' loaded test_dataset length is: {len(test_dataset)}')
     
     # load dataset csvs to torch datasets
     # The function load_data_from_folder expects a path to a folder that contains 
@@ -196,6 +191,47 @@ if __name__ == '__main__':
         precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary')
         acc = accuracy_score(labels, preds)
         return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
+    
+    # data and training parameters
+    text_cols = ['Title', 'Review Text']
+    cat_cols = ['Clothing ID', 'Division Name', 'Department Name', 'Class Name']
+    numerical_cols = ['Rating', 'Age', 'Positive Feedback Count']
+
+    column_info_dict = {
+        'text_cols': text_cols,
+        'num_cols': numerical_cols,
+        'cat_cols': cat_cols,
+        'label_col': 'Recommended IND',
+        'label_list': ['Not Recommended', 'Recommended']
+    }
+
+
+    model_args = ModelArguments(
+        model_name_or_path='bert-base-uncased'
+    )
+
+    data_args = MultimodalDataTrainingArguments(
+        data_path='.',
+        combine_feat_method='gating_on_cat_and_num_feats_then_sum',
+        column_info=column_info_dict,
+        task='classification'
+    )
+
+    # define training args
+    training_args = TrainingArguments(
+        output_dir="./logs/model_name",
+        logging_dir="./logs/runs",
+        overwrite_output_dir=True,
+        do_train=True,
+        do_eval=True,
+        per_device_train_batch_size=32,
+        num_train_epochs=1,
+        evaluate_during_training=True,
+        logging_steps=25,
+        eval_steps=250
+    )
+
+    set_seed(training_args.seed)
     
     # create config for multimodal model
     config = AutoConfig.from_pretrained(
@@ -226,14 +262,6 @@ if __name__ == '__main__':
 
     # Load the training data.
     train_loader = _get_train_data_loader(args.batch_size, args.data_dir)
-
-
-    ## --- Your code here --- ##
-    
-    ## TODO:  Build the model by passing in the input params
-    # To get params from the parser, call args.argument_name, ex. args.epochs or ards.hidden_dim
-    # Don't forget to move your model .to(device) to move to GPU , if appropriate
-    model = None
 
     ## TODO: Define an optimizer and loss function for training
     optimizer = None
