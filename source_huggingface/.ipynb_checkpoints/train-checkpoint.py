@@ -183,8 +183,8 @@ if __name__ == '__main__':
     
     # data and training parameters
     text_cols = ['raw_Text']
-    cat_cols = ['Clothing ID', 'Division Name', 'Department Name', 'Class Name']
-    numerical_cols = ['Rating', 'Age', 'Positive Feedback Count']
+    cat_cols = None
+    numerical_cols = ['c_1', 'c_5', 'lcs_word']
 
     column_info_dict = {
         'text_cols': text_cols,
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     
     # Training Args for our Multimodal model
     data_args = MultimodalDataTrainingArguments(
-        data_path='.',
+        data_path='./multimodal_plagiarism_data',
         combine_feat_method='gating_on_cat_and_num_feats_then_sum',
         column_info=column_info_dict,
         task='classification'
@@ -223,6 +223,7 @@ if __name__ == '__main__':
     
     set_seed(training_args.seed)
     
+    # setting up our tokenizer
     tokenizer_path_or_name = model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path
     print('Specified tokenizer: ', tokenizer_path_or_name)
     tokenizer = AutoTokenizer.from_pretrained(
