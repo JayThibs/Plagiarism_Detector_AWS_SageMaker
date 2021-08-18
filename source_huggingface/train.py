@@ -184,7 +184,7 @@ if __name__ == '__main__':
     # number of labels in dataset
     num_labels = len(np.unique(train_dataset.labels))
     
-    # compute metrics function for binary classification
+    # compute metrics function for binary classification 
     def compute_metrics(pred):
         labels = pred.label_ids
         preds = pred.predictions.argmax(-1)
@@ -253,23 +253,24 @@ if __name__ == '__main__':
         cache_dir=model_args.cache_dir
     )
     
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        compute_metrics=compute_metrics
+    )
     
+    # train model (from checkpoint if there is one)
+    if get_last_checkpoint(args.output_dir) is not None:
+        logger.info('***** continue training *****')
+        trainer.train(resume_from_checkpoint=args.output_dir)
+    else:
+        trainer.train()
     
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Using device {}.".format(device))
-
-    torch.manual_seed(args.seed)
-
-    # Load the training data.
-    train_loader = _get_train_data_loader(args.batch_size, args.data_dir)
-
-    ## TODO: Define an optimizer and loss function for training
-    optimizer = None
-    criterion = None
-
-    # Trains the model (given line of code, which calls the above training function)
-    train(model, train_loader, args.epochs, criterion, optimizer, device)
-
+    # evaluate model
+    eval_result = trainer.evaluate(eval_dataset=test_dataset)
+    
     ## TODO: complete in the model_info by adding three argument names, the first is given
     # Keep the keys of this dictionary as they are 
     model_info_path = os.path.join(args.model_dir, 'model_info.pth')
