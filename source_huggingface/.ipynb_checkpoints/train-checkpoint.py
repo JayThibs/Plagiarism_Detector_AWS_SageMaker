@@ -271,21 +271,11 @@ if __name__ == '__main__':
     # evaluate model
     eval_result = trainer.evaluate(eval_dataset=test_dataset)
     
-    ## TODO: complete in the model_info by adding three argument names, the first is given
-    # Keep the keys of this dictionary as they are 
-    model_info_path = os.path.join(args.model_dir, 'model_info.pth')
-    with open(model_info_path, 'wb') as f:
-        model_info = {
-            'input_features': args.input_features,
-            'hidden_dim': <add_arg>,
-            'output_dim': <add_arg>,
-        }
-        torch.save(model_info, f)
-        
-    ## --- End of your code  --- ##
-    
-
-	# Save the model parameters
-    model_path = os.path.join(args.model_dir, 'model.pth')
-    with open(model_path, 'wb') as f:
-        torch.save(model.cpu().state_dict(), f)
+    # writes eval result to file which can be accessed later in s3 output
+    with open(os.path.join(args.output_data_dir, "eval_results.txt"), "w") as writer:
+        print('***** Eval results *****')
+        for key, value in sorted(eval_result.item()):
+            writer.write(f'{key} = {value}\n')
+            
+    # saves the model to s3
+    trainer.save_model(args.model_dir)
