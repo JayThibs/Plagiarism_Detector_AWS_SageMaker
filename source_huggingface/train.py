@@ -284,12 +284,14 @@ if __name__ == '__main__':
         compute_metrics=compute_metrics
     )
     
-    # train model (from checkpoint if there is one)
-    if get_last_checkpoint(args.output_dir) is not None:
-        logger.info('***** continue training *****')
-        trainer.train(resume_from_checkpoint=args.output_dir)
-    else:
-        trainer.train()
+    # can't use get_last_checkpoint in transformers versions lower than 4.4.2
+#     # train model (from checkpoint if there is one)
+#     if get_last_checkpoint(args.output_dir) is not None:
+#         logger.info('***** continue training *****')
+#         trainer.train(resume_from_checkpoint=args.output_dir)
+#     else:
+    
+    trainer.train()
     
     # evaluate model
     eval_result = trainer.evaluate(eval_dataset=test_dataset)
