@@ -18,8 +18,6 @@ from transformers import (
     set_seed
 )
 from transformers.training_args import TrainingArguments
-from transformers.trainer_utils import get_last_checkpoint
-from datasets import load_from_disk
 
 from multimodal_transformers.data import load_data_from_folder
 from multimodal_transformers.model import TabularConfig
@@ -73,8 +71,8 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
     
     # load datasets
-    train_dataset = load_from_disk(args.training_dir)
-    test_dataset = load_from_disk(args.test_dir)
+    train_dataset = pd.read_csv(args.training_dir)
+    test_dataset = pd.read_csv(args.test_dir)
     
     logger.info(f' loaded train_dataset length is: {len(train_dataset)}')
     logger.info(f' loaded test_dataset length is: {len(test_dataset)}')

@@ -73,8 +73,8 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
     
     # load datasets
-    train_dataset = load_from_disk(args.training_dir)
-    test_dataset = load_from_disk(args.test_dir)
+    train_dataset = pd.read_csv(args.training_dir)
+    test_dataset = pd.read_csv(args.test_dir)
     
     logger.info(f' loaded train_dataset length is: {len(train_dataset)}')
     logger.info(f' loaded test_dataset length is: {len(test_dataset)}')
