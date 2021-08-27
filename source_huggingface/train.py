@@ -71,8 +71,8 @@ if __name__ == '__main__':
     args, _ = parser.parse_known_args()
     
     # load datasets
-    train_dataset = pd.read_csv(args.training_dir)
-    test_dataset = pd.read_csv(args.test_dir)
+    train_dataset = pd.read_csv(args.training_dir, index_col=0)
+    test_dataset = pd.read_csv(args.test_dir, index_col=0)
     
     logger.info(f' loaded train_dataset length is: {len(train_dataset)}')
     logger.info(f' loaded test_dataset length is: {len(test_dataset)}')
@@ -180,14 +180,14 @@ if __name__ == '__main__':
     
     # data and training parameters
     text_cols = ['raw_Text']
-    cat_cols = None
+    cat_cols = ['Task']
     numerical_cols = ['c_1', 'c_5', 'lcs_word']
 
     column_info_dict = {
         'text_cols': text_cols,
         'num_cols': numerical_cols,
         'cat_cols': cat_cols,
-        'label_col': 'Plagiarism',
+        'label_col': 'Class',
         'label_list': ['Not Plagiarism', 'Plagiarism']
     }
 
