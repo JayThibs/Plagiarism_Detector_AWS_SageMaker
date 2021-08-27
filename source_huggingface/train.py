@@ -71,8 +71,12 @@ if __name__ == '__main__':
     # load datasets
     print(args.training_dir)
     print(args.test_dir)
-    train_location = 's3://sagemaker-us-east-1-209161541854/sagemaker/plagiarism_detection/train.csv'
-    test_location = 's3://sagemaker-us-east-1-209161541854/sagemaker/plagiarism_detection/test.csv'
+    
+    folder_path = 's3://sagemaker-us-east-1-209161541854/sagemaker/plagiarism_detection/'
+    
+    train_location = folder_path + 'train.csv'
+    test_location = folder_path + 'test.csv'
+    
     train_dataset = pd.read_csv(train_location, index_col=0)
     test_dataset = pd.read_csv(test_location, index_col=0)
     
@@ -200,7 +204,7 @@ if __name__ == '__main__':
 
     # Training Args for our Multimodal model
     data_args = MultimodalDataTrainingArguments(
-        data_path='.', # source_dir is multimodal_plagiarism_data
+        data_path=folder_path,
         combine_feat_method='gating_on_cat_and_num_feats_then_sum',
         column_info=column_info_dict,
         task='classification'
@@ -242,6 +246,7 @@ if __name__ == '__main__':
         label_list=data_args.column_info['label_list'],
         categorical_cols=data_args.column_info['cat_cols'],
         numerical_cols=data_args.column_info['num_cols'],
+        numerical_transformer_method='yeo_johnson',
         sep_text_token_str=tokenizer.sep_token
     )
     
