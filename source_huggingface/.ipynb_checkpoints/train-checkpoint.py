@@ -79,7 +79,6 @@ if __name__ == '__main__':
     logger.info(f' loaded train_dataset length is: {len(train_dataset)}')
     logger.info(f' loaded test_dataset length is: {len(test_dataset)}')
     
-    
     @dataclass
     class ModelArguments:
       """
@@ -98,8 +97,8 @@ if __name__ == '__main__':
       cache_dir: Optional[str] = field(
           default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
       )
-        
-    
+
+
     @dataclass
     class MultimodalDataTrainingArguments:
       """
@@ -193,20 +192,20 @@ if __name__ == '__main__':
         'label_col': 'Plagiarism',
         'label_list': ['Not Plagiarism', 'Plagiarism']
     }
-    
+
     # pre-trained model we want to use for fine-tuning
     model_args = ModelArguments(
         model_name_or_path='distilbert-base-cased'
     )
-    
+
     # Training Args for our Multimodal model
     data_args = MultimodalDataTrainingArguments(
-        data_path='./multimodal_plagiarism_data',
+        data_path='.', # source_dir is multimodal_plagiarism_data
         combine_feat_method='gating_on_cat_and_num_feats_then_sum',
         column_info=column_info_dict,
         task='classification'
     )
-    
+
     # define training args
     training_args = TrainingArguments(
         output_dir="./logs/model_name",
@@ -220,7 +219,7 @@ if __name__ == '__main__':
         logging_steps=25,
         eval_steps=250
     )
-    
+
     set_seed(training_args.seed)
     
     # setting up our tokenizer
@@ -230,6 +229,7 @@ if __name__ == '__main__':
         tokenizer_path_or_name,
         cache_dir=model_args.cache_dir,
     )
+    
     
     # load dataset csvs to torch datasets
     # The function load_data_from_folder expects a path to a folder that contains 
