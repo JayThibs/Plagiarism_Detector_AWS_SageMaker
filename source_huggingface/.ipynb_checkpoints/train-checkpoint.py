@@ -57,22 +57,24 @@ if __name__ == '__main__':
     parser.add_argument("--output_dir", type=str)
     
     # Data, model, and output directories
-    parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
-    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
     parser.add_argument("--training_dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
     parser.add_argument("--test_dir", type=str, default=os.environ["SM_CHANNEL_TEST"])
     
-    parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
-    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+#     parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
+#     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     
     # args holds all passed-in arguments
     args, _ = parser.parse_known_args()
     
     # load datasets
-    train_dataset = pd.read_csv(args.training_dir)
-    test_dataset = pd.read_csv(args.test_dir)
+    print(args.training_dir)
+    print(args.test_dir)
+    train_location = 's3://sagemaker-us-east-1-209161541854/sagemaker/plagiarism_detection/train.csv'
+    test_location = 's3://sagemaker-us-east-1-209161541854/sagemaker/plagiarism_detection/test.csv'
+    train_dataset = pd.read_csv(train_location, index_col=0)
+    test_dataset = pd.read_csv(test_location, index_col=0)
     
     logger.info(f' loaded train_dataset length is: {len(train_dataset)}')
     logger.info(f' loaded test_dataset length is: {len(test_dataset)}')
@@ -180,14 +182,14 @@ if __name__ == '__main__':
     
     # data and training parameters
     text_cols = ['raw_Text']
-    cat_cols = None
+    cat_cols = ['Task']
     numerical_cols = ['c_1', 'c_5', 'lcs_word']
 
     column_info_dict = {
         'text_cols': text_cols,
         'num_cols': numerical_cols,
         'cat_cols': cat_cols,
-        'label_col': 'Plagiarism',
+        'label_col': 'Class',
         'label_list': ['Not Plagiarism', 'Plagiarism']
     }
 
