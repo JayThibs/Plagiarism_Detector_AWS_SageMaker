@@ -246,7 +246,7 @@ if __name__ == '__main__':
         label_list=data_args.column_info['label_list'],
         categorical_cols=data_args.column_info['cat_cols'],
         numerical_cols=data_args.column_info['num_cols'],
-        numerical_transformer_method='yeo_johnson',
+        numerical_transformer_method='none',
         sep_text_token_str=tokenizer.sep_token
     )
     
